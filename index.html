@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Oficina</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+    <div class="container my-4">
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="80">
+            <h1 class="text-warning">Checklist de Veículos</h1>
+        </div>
+        <form method="POST" action="/submit">
+
+            <div class="mb-3">
+                <label class="form-label">Mecânico</label>
+                <select class="form-select" name="mecanico" required>
+                    <option value="">Selecione</option>
+                    <option value="João">João</option>
+                    <option value="Pedro">Pedro</option>
+                    <option value="Lucas">Lucas</option>
+                </select>
+            </div>
+
+            <!-- Categoria Pneus -->
+            <div class="card mb-3 bg-secondary text-light">
+                <div class="card-header text-warning">Pneus</div>
+                <div class="card-body">
+                    {% for item in ["Dianteiros", "Traseiros", "Estepe"] %}
+                    <div class="mb-2">
+                        <label>{{ item }}</label><br>
+                        <input type="radio" name="Pneus-{{ item }}" value="Bom" required> Bom
+                        <input type="radio" name="Pneus-{{ item }}" value="Regular"> Regular
+                        <input type="radio" name="Pneus-{{ item }}" value="Ruim"> Ruim
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Categoria Freios -->
+            <div class="card mb-3 bg-secondary text-light">
+                <div class="card-header text-warning">Freios</div>
+                <div class="card-body">
+                    {% for item in ["Pastilhas", "Discos", "Tambor", "Lona", "Cilindro de roda", "Servo-freio"] %}
+                    <div class="mb-2">
+                        <label>{{ item }}</label><br>
+                        <input type="radio" name="Freios-{{ item }}" value="Bom" required> Bom
+                        <input type="radio" name="Freios-{{ item }}" value="Regular"> Regular
+                        <input type="radio" name="Freios-{{ item }}" value="Ruim"> Ruim
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Categoria Suspensão -->
+            <div class="card mb-3 bg-secondary text-light">
+                <div class="card-header text-warning">Suspensão</div>
+                <div class="card-body">
+                    {% for item in ["Amortecedores", "Molas", "Coxins", "Buchas", "Pivôs", "Bandejas"] %}
+                    <div class="mb-2">
+                        <label>{{ item }}</label><br>
+                        <input type="radio" name="Suspensao-{{ item }}" value="Bom" required> Bom
+                        <input type="radio" name="Suspensao-{{ item }}" value="Regular"> Regular
+                        <input type="radio" name="Suspensao-{{ item }}" value="Ruim"> Ruim
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Categoria Motor -->
+            <div class="card mb-3 bg-secondary text-light">
+                <div class="card-header text-warning">Motor</div>
+                <div class="card-body">
+                    {% for item in ["Óleo", "Filtro de ar", "Filtro de combustível", "Filtro de óleo", "Correia dentada", "Vazamentos", "Injeção"] %}
+                    <div class="mb-2">
+                        <label>{{ item }}</label><br>
+                        <input type="radio" name="Motor-{{ item }}" value="Bom" required> Bom
+                        <input type="radio" name="Motor-{{ item }}" value="Regular"> Regular
+                        <input type="radio" name="Motor-{{ item }}" value="Ruim"> Ruim
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Categoria Câmbio -->
+            <div class="card mb-3 bg-secondary text-light">
+                <div class="card-header text-warning">Câmbio</div>
+                <div class="card-body">
+                    {% for item in ["Embreagem", "Fluido", "Engates"] %}
+                    <div class="mb-2">
+                        <label>{{ item }}</label><br>
+                        <input type="radio" name="Cambio-{{ item }}" value="Bom" required> Bom
+                        <input type="radio" name="Cambio-{{ item }}" value="Regular"> Regular
+                        <input type="radio" name="Cambio-{{ item }}" value="Ruim"> Ruim
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Categoria Elétrica -->
+            <div class="card mb-3 bg-secondary text-light">
+                <div class="card-header text-warning">Elétrica</div>
+                <div class="card-body">
+                    {% for item in ["Alternador", "Bateria", "Motor de arranque", "Fusíveis"] %}
+                    <div class="mb-2">
+                        <label>{{ item }}</label><br>
+                        <input type="radio" name="Eletrica-{{ item }}" value="Bom" required> Bom
+                        <input type="radio" name="Eletrica-{{ item }}" value="Regular"> Regular
+                        <input type="radio" name="Eletrica-{{ item }}" value="Ruim"> Ruim
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Categoria Iluminação -->
+            <div class="card mb-3 bg-secondary text-light">
+                <div class="card-header text-warning">Iluminação</div>
+                <div class="card-body">
+                    {% for item in ["Faróis", "Lanternas traseiras", "Setas", "Luz de freio", "Luz de ré"] %}
+                    <div class="mb-2">
+                        <label>{{ item }}</label><br>
+                        <input type="radio" name="Iluminacao-{{ item }}" value="Bom" required> Bom
+                        <input type="radio" name="Iluminacao-{{ item }}" value="Regular"> Regular
+                        <input type="radio" name="Iluminacao-{{ item }}" value="Ruim"> Ruim
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Observações</label>
+                <textarea class="form-control" name="obs" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100">Enviar Checklist</button>
+        </form>
+    </div>
+</body>
+</html>
