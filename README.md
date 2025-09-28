@@ -15,6 +15,7 @@ Facilitar o fluxo de trabalho entre mecânicos e setor de logística, permitindo
 
 ### 👨‍🔧 Para Mecânicos
 - ✅ **Login seguro** com credenciais específicas
+- 🔍 **Busca automática por placa** - Digite a placa e os dados do veículo são preenchidos automaticamente
 - 📋 **Checklist digital completo** com itens pré-definidos:
   - Motor (óleo, arrefecimento)
   - Sistema de freios (pastilhas, discos)
@@ -36,7 +37,42 @@ Facilitar o fluxo de trabalho entre mecânicos e setor de logística, permitindo
 - 💰 **Base para orçamentos** e controle de peças
 - 📈 **Gestão de fluxo** de trabalho
 
-## 🚀 Como Usar
+## 🆓 **APIs 100% Gratuitas e Ilimitadas**
+
+### 🏛️ **SINESP** (Sistema Nacional de Informações de Segurança Pública)
+- **Preço:** 🆓 Completamente gratuito e ilimitado
+- **Dados:** Marca, modelo, ano, cor, motor
+- **Base:** Dados oficiais do governo brasileiro
+- **Status:** ✅ Já configurado no sistema
+
+### 🔍 **Como Funciona**
+1. **Digite a placa** no formato ABC1234 ou ABC1D23
+2. **Clique em "Buscar Dados do Veículo"**
+3. **Sistema consulta SINESP automaticamente**
+4. **Dados preenchidos:** Marca Modelo Ano - Motor: tipo
+
+### 🏷️ **Placas de Teste Expandidas**
+Para testar, use estas placas (base de demonstração):
+- `ABC1234` → Honda Civic 2018 - Motor: 2.0 16V
+- `DEF5678` → Toyota Corolla 2020 - Motor: 2.0 VVT-i
+- `GHI9012` → Volkswagen Gol 2019 - Motor: 1.0 TSI
+- `JKL3456` → Ford Ka 2021 - Motor: 1.0 Ti-VCT
+- `MNO7890` → Chevrolet Onix 2022 - Motor: 1.0 Turbo
+- `PQR1357` → Fiat Palio 2017 - Motor: 1.0 Fire
+- `STU2468` → Hyundai HB20 2020 - Motor: 1.0 KAPPA
+- `VWX3691` → Renault Sandero 2019 - Motor: 1.0 SCe
+
+### ⚡ **Vantagens do SINESP**
+- ✅ **Gratuito e ilimitado** - sem custos ou limites
+- ✅ **Base oficial** - dados do governo brasileiro
+- ✅ **Sem cadastro** - funciona imediatamente
+- ✅ **Dados essenciais** - marca, modelo, ano, motor
+- ✅ **Já configurado** - funciona sem setup adicional
+
+### ⚠️ **Limitações do SINESP**
+- ❌ **Instabilidade** - pode ficar offline às vezes
+- ❌ **Velocidade** - pode ser mais lento que APIs pagas
+- ❌ **Dados limitados** - menos informações que APIs premium
 
 ### 1. Acesso Rápido
 - Abra o arquivo `index.html` em qualquer navegador
