@@ -401,12 +401,14 @@
                         <input type="text" id="clientName" required>
                     </div>
                     <div class="form-group">
-                        <label for="vehicleModel">Modelo do Veículo:</label>
-                        <input type="text" id="vehicleModel" required>
+                        <label for="licensePlate">Placa:</label>
+                        <input type="text" id="licensePlate" placeholder="ABC1234 ou ABC1D23" maxlength="8" required>
+                        <button type="button" class="btn btn-secondary" onclick="searchVehicleByPlate()" style="margin-top: 10px;">🔍 Buscar Dados do Veículo</button>
                     </div>
                     <div class="form-group">
-                        <label for="licensePlate">Placa:</label>
-                        <input type="text" id="licensePlate" required>
+                        <label for="vehicleModel">Modelo do Veículo:</label>
+                        <input type="text" id="vehicleModel" required>
+                        <small style="color: #ccc;">Será preenchido automaticamente ao buscar pela placa</small>
                     </div>
                     <div class="form-group">
                         <label for="mileage">Quilometragem:</label>
@@ -787,9 +789,19 @@
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
-            notification.className = `notification ${type === 'error' ? 'error' : 'success'}`;
-            notification.style.background = type === 'error' ? '#dc3545' : '#ff6b35';
-            notification.style.color = type === 'error' ? '#fff' : '#000';
+            notification.className = `notification ${type}`;
+            
+            if (type === 'error') {
+                notification.style.background = '#dc3545';
+                notification.style.color = '#fff';
+            } else if (type === 'info') {
+                notification.style.background = '#17a2b8';
+                notification.style.color = '#fff';
+            } else {
+                notification.style.background = '#ff6b35';
+                notification.style.color = '#000';
+            }
+            
             notification.classList.add('show');
             
             setTimeout(() => {
@@ -797,7 +809,236 @@
             }, 3000);
         }
 
-        // Dados de exemplo para demonstração
+        // Função para buscar dados do veículo pela placa (APENAS APIS GRATUITAS)
+        async function searchVehicleByPlate() {
+            const plateInput = document.getElementById('licensePlate');
+            const modelInput = document.getElementById('vehicleModel');
+            const plate = plateInput.value.trim().toUpperCase();
+            
+            if (!plate) {
+                showNotification('Digite a placa primeiro!', 'error');
+                return;
+            }
+            
+            // Validar formato da placa
+            const plateRegex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
+            if (!plateRegex.test(plate)) {
+                showNotification('Formato de placa inválido! Use: ABC1234 ou ABC1D23', 'error');
+                return;
+            }
+            
+            // Desabilitar botão durante consulta
+            const searchBtn = event.target;
+            const originalText = searchBtn.textContent;
+            searchBtn.disabled = true;
+            searchBtn.textContent = '🔄 Consultando APIs gratuitas...';
+            
+            showNotification('Consultando SINESP (base governamental gratuita)...', 'info');
+            
+            try {
+                // Tentar APIs gratuitas primeiro
+                let vehicleData = await consultarPlacaGratuita(plate);
+                
+                // Se APIs gratuitas falharem, usar base simulada
+                if (!vehicleData) {
+                    console.log('⚠️ APIs gratuitas indisponíveis, usando base de demonstração...');
+                    showNotification('SINESP indisponível. Usando base de demonstração.', 'info');
+                    vehicleData = await simulateVehicleAPI(plate);
+                }
+                
+                if (vehicleData) {
+                    // Preencher campos automaticamente com foco em: marca, modelo, ano
+                    let fullModel = '';
+                    
+                    if (vehicleData.brand && vehicleData.model) {
+                        fullModel = `${vehicleData.brand} ${vehicleData.model}`;
+                        if (vehicleData.year) {
+                            fullModel += ` ${vehicleData.year}`;
+                        }
+                        // Adicionar motor se disponível
+                        if (vehicleData.engine && vehicleData.engine !== 'Não informado') {
+                            fullModel += ` - Motor: ${vehicleData.engine}`;
+                        }
+                    } else if (vehicleData.model) {
+                        fullModel = vehicleData.model;
+                        if (vehicleData.year) {
+                            fullModel += ` ${vehicleData.year}`;
+                        }
+                    }
+                    
+                    modelInput.value = fullModel;
+                    
+                    // Log informações extras no console
+                    if (vehicleData.color) {
+                        console.log('🎨 Cor do veículo:', vehicleData.color);
+                    }
+                    if (vehicleData.engine) {
+                        console.log('🔧 Motor:', vehicleData.engine);
+                    }
+                    
+                    const successMsg = vehicleData.brand ? 
+                        `✅ Encontrado: ${vehicleData.brand} ${vehicleData.model} ${vehicleData.year || ''}` :
+                        `✅ Encontrado: ${vehicleData.model} ${vehicleData.year || ''}`;
+                    
+                    showNotification(successMsg, 'success');
+                    
+                } else {
+                    showNotification('❌ Placa não encontrada nas bases gratuitas. Preencha manualmente.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Erro na consulta:', error);
+                showNotification('❌ Erro na conexão com SINESP. Verifique sua internet.', 'error');
+            } finally {
+                // Restaurar botão
+                searchBtn.disabled = false;
+                searchBtn.textContent = originalText;
+            }
+        }
+        
+        // Base de dados simulada expandida (foco em modelo, ano e motor)
+        async function simulateVehicleAPI(plate) {
+            // Simular delay de rede
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Base de dados simulada com informações de motor
+            const mockDatabase = {
+                'ABC1234': { brand: 'Honda', model: 'Civic', year: '2018', color: 'Branco', engine: '2.0 16V' },
+                'DEF5678': { brand: 'Toyota', model: 'Corolla', year: '2020', color: 'Prata', engine: '2.0 VVT-i' },
+                'GHI9012': { brand: 'Volkswagen', model: 'Gol', year: '2019', color: 'Vermelho', engine: '1.0 TSI' },
+                'JKL3456': { brand: 'Ford', model: 'Ka', year: '2021', color: 'Preto', engine: '1.0 Ti-VCT' },
+                'MNO7890': { brand: 'Chevrolet', model: 'Onix', year: '2022', color: 'Azul', engine: '1.0 Turbo' },
+                'PQR1357': { brand: 'Fiat', model: 'Palio', year: '2017', color: 'Branco', engine: '1.0 Fire' },
+                'STU2468': { brand: 'Hyundai', model: 'HB20', year: '2020', color: 'Cinza', engine: '1.0 KAPPA' },
+                'VWX3691': { brand: 'Renault', model: 'Sandero', year: '2019', color: 'Prata', engine: '1.0 SCe' },
+                // Placas adicionais para teste
+                'AAA0000': { brand: 'Nissan', model: 'March', year: '2021', color: 'Azul', engine: '1.0 12V' },
+                'BBB1111': { brand: 'Peugeot', model: '208', year: '2020', color: 'Branco', engine: '1.2 PureTech' },
+                'CCC2222': { brand: 'Jeep', model: 'Renegade', year: '2022', color: 'Laranja', engine: '1.8 E.torQ' },
+                'DDD3333': { brand: 'Mitsubishi', model: 'Lancer', year: '2018', color: 'Preto', engine: '2.0 16V' }
+            };
+            
+            return mockDatabase[plate] || null;
+        }
+        
+        // ========================================
+        // APIs 100% GRATUITAS E ILIMITADAS
+        // ========================================
+        
+        // Função principal para consultar apenas APIs gratuitas
+        async function consultarPlacaGratuita(plate) {
+            console.log(`🔍 Consultando placa ${plate} nas APIs gratuitas...`);
+            
+            const apisGratuitas = [
+                // SINESP - Base governamental (principal)
+                {
+                    name: 'SINESP Cidadão',
+                    url: `https://sinesp-api.herokuapp.com/search/${plate}`,
+                    parser: (data) => ({
+                        brand: data.brand,
+                        model: data.model,
+                        year: data.year,
+                        color: data.color,
+                        engine: data.engine || 'Não informado'
+                    })
+                },
+                
+                // SINESP alternativo
+                {
+                    name: 'SINESP API',
+                    url: `https://api-sinesp.vercel.app/search/${plate}`,
+                    parser: (data) => ({
+                        brand: data.brand,
+                        model: data.model,
+                        year: data.year,
+                        color: data.color,
+                        engine: data.engine || 'Não informado'
+                    })
+                },
+                
+                // Via CEP (tem algumas funcionalidades de consulta)
+                {
+                    name: 'Consulta Pública',
+                    url: `https://brasilapi.com.br/api/cep/v1/${plate}`, // Placeholder - não existe essa API
+                    skip: true // Pular esta por enquanto
+                },
+                
+                // API Pública alternativa
+                {
+                    name: 'SINESP Mirror',
+                    url: `https://sinesp-ciudadao.herokuapp.com/consulta/${plate}`,
+                    parser: (data) => ({
+                        brand: data.marca || data.brand,
+                        model: data.modelo || data.model,
+                        year: data.ano || data.year,
+                        color: data.cor || data.color,
+                        engine: data.motor || data.engine || 'Não informado'
+                    })
+                }
+            ];
+            
+            // Tentar cada API gratuita
+            for (let api of apisGratuitas) {
+                if (api.skip) continue;
+                
+                try {
+                    console.log(`🔄 Tentando ${api.name}...`);
+                    
+                    const response = await fetch(api.url, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log(`📊 Resposta ${api.name}:`, data);
+                    
+                    // Verificar se retornou dados válidos
+                    if (data && !data.error && !data.erro && (data.brand || data.marca)) {
+                        const parsedData = api.parser(data);
+                        console.log(`✅ ${api.name} - Dados encontrados:`, parsedData);
+                        return parsedData;
+                    } else {
+                        console.log(`❌ ${api.name} - Sem dados válidos`);
+                    }
+                    
+                } catch (error) {
+                    console.error(`❌ Erro ${api.name}:`, error.message);
+                    continue;
+                }
+            }
+            
+            console.log('❌ Nenhuma API gratuita retornou dados válidos');
+            return null;
+        }
+        
+        // Função alternativa usando scraping de sites públicos (backup)
+        async function consultarSitesPublicos(plate) {
+            try {
+                console.log('🌐 Tentando consulta em sites públicos...');
+                
+                // Simulação de consulta em site público (placeholder)
+                // Em implementação real, você faria scraping de sites como:
+                // - Detran (limitado)
+                // - Sites de classificados (dados parciais)
+                // - Bases públicas de leilão
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Retornar null para usar base simulada como fallback
+                return null;
+                
+            } catch (error) {
+                console.error('❌ Erro na consulta de sites públicos:', error);
+                return null;
+            }
+        }
         setTimeout(() => {
             workOrders.push({
                 id: 1001,
