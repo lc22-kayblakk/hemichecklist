@@ -1,142 +1,818 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checklist Oficina</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <title>Sistema Oficina - Checklist e Logística</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .login-container, .dashboard-container {
+            background: rgba(26, 26, 26, 0.95);
+            border: 2px solid #ff6b35;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            margin: 50px auto;
+            max-width: 500px;
+        }
+
+        .dashboard-container {
+            max-width: 100%;
+            margin: 20px auto;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #ff6b35;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.3);
+        }
+
+        .logo p {
+            color: #ccc;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #444;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(45, 45, 45, 0.9);
+            color: #fff;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.4);
+            background: linear-gradient(135deg, #ff5722 0%, #ff6b35 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #444 0%, #666 100%);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 10px 25px rgba(68, 68, 68, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 10px 25px rgba(220, 53, 69, 0.4);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(45, 45, 45, 0.8);
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-info {
+            color: white;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: rgba(255, 107, 53, 0.2);
+            color: #ff6b35;
+            border: 2px solid #ff6b35;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #ff6b35;
+            color: #000;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(26, 26, 26, 0.95);
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.3);
+            border-color: #ff8c42;
+        }
+
+        .card h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .checklist-container {
+            background: rgba(26, 26, 26, 0.98);
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item:hover {
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .checklist-item label {
+            flex: 1;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-in-progress {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .work-orders-table {
+            width: 100%;
+            background: #1a1a1a;
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.2);
+        }
+
+        .work-orders-table th,
+        .work-orders-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+            color: #fff;
+        }
+
+        .work-orders-table th {
+            background: #ff6b35;
+            color: #000;
+            font-weight: 600;
+        }
+
+        .work-orders-table tr:hover {
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            margin: 0 2px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-view {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-complete {
+            background: #28a745;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #ff6b35;
+            color: #000;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
 </head>
-<body class="bg-dark text-light">
-    <div class="container my-4">
-        <div class="text-center mb-4">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="80">
-            <h1 class="text-warning">Checklist de Veículos</h1>
+<body>
+    <div class="container">
+        <!-- Tela de Login -->
+        <div id="loginScreen" class="login-container">
+            <div class="logo">
+                <h1>🔧 OficinaSystem</h1>
+                <p>Sistema de Checklist e Logística</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuário:</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="userType">Tipo de Usuário:</label>
+                    <select id="userType" required>
+                        <option value="">Selecione...</option>
+                        <option value="mecanico">Mecânico</option>
+                        <option value="logistica">Logística</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Entrar</button>
+            </form>
+            <div style="margin-top: 20px; text-align: center; color: #ccc; font-size: 14px;">
+                <p><strong style="color: #ff6b35;">Usuários de teste:</strong></p>
+                <p>Mecânico: usuario: <strong style="color: #ff6b35;">mecanico</strong> / senha: <strong style="color: #ff6b35;">123</strong></p>
+                <p>Logística: usuario: <strong style="color: #ff6b35;">logistica</strong> / senha: <strong style="color: #ff6b35;">123</strong></p>
+            </div>
         </div>
-        <form method="POST" action="/submit">
 
-            <div class="mb-3">
-                <label class="form-label">Mecânico</label>
-                <select class="form-select" name="mecanico" required>
-                    <option value="">Selecione</option>
-                    <option value="João">João</option>
-                    <option value="Pedro">Pedro</option>
-                    <option value="Lucas">Lucas</option>
-                </select>
+        <!-- Dashboard Mecânico -->
+        <div id="mecanicoDashboard" class="dashboard-container hidden">
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <h2>Dashboard Mecânico</h2>
+                    <p id="mecanicoName"></p>
+                </div>
+                <button class="logout-btn" onclick="logout()">Sair</button>
             </div>
 
-            <!-- Categoria Pneus -->
-            <div class="card mb-3 bg-secondary text-light">
-                <div class="card-header text-warning">Pneus</div>
-                <div class="card-body">
-                    {% for item in ["Dianteiros", "Traseiros", "Estepe"] %}
-                    <div class="mb-2">
-                        <label>{{ item }}</label><br>
-                        <input type="radio" name="Pneus-{{ item }}" value="Bom" required> Bom
-                        <input type="radio" name="Pneus-{{ item }}" value="Regular"> Regular
-                        <input type="radio" name="Pneus-{{ item }}" value="Ruim"> Ruim
-                    </div>
-                    {% endfor %}
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>📋 Novo Checklist</h3>
+                    <p>Criar checklist para veículo recém-chegado</p>
+                    <button class="btn" onclick="showNewChecklist()">Criar Checklist</button>
+                </div>
+                <div class="card">
+                    <h3>📊 Meus Checklists</h3>
+                    <p>Ver checklists criados por você</p>
+                    <button class="btn btn-secondary" onclick="showMyChecklists()">Ver Lista</button>
                 </div>
             </div>
 
-            <!-- Categoria Freios -->
-            <div class="card mb-3 bg-secondary text-light">
-                <div class="card-header text-warning">Freios</div>
-                <div class="card-body">
-                    {% for item in ["Pastilhas", "Discos", "Tambor", "Lona", "Cilindro de roda", "Servo-freio"] %}
-                    <div class="mb-2">
-                        <label>{{ item }}</label><br>
-                        <input type="radio" name="Freios-{{ item }}" value="Bom" required> Bom
-                        <input type="radio" name="Freios-{{ item }}" value="Regular"> Regular
-                        <input type="radio" name="Freios-{{ item }}" value="Ruim"> Ruim
+            <!-- Formulário Novo Checklist -->
+            <div id="newChecklistForm" class="checklist-container hidden">
+                <h3>🚗 Novo Checklist de Veículo</h3>
+                <form id="checklistForm">
+                    <div class="form-group">
+                        <label for="clientName">Nome do Cliente:</label>
+                        <input type="text" id="clientName" required>
                     </div>
-                    {% endfor %}
+                    <div class="form-group">
+                        <label for="vehicleModel">Modelo do Veículo:</label>
+                        <input type="text" id="vehicleModel" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="licensePlate">Placa:</label>
+                        <input type="text" id="licensePlate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mileage">Quilometragem:</label>
+                        <input type="number" id="mileage" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceDescription">Descrição do Serviço:</label>
+                        <textarea id="serviceDescription" rows="3" required></textarea>
+                    </div>
+
+                    <h4>Checklist de Inspeção:</h4>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check1" name="checklist">
+                        <label for="check1">Motor - Verificar nível de óleo</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check2" name="checklist">
+                        <label for="check2">Motor - Verificar líquido de arrefecimento</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check3" name="checklist">
+                        <label for="check3">Freios - Verificar pastilhas</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check4" name="checklist">
+                        <label for="check4">Freios - Verificar discos</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check5" name="checklist">
+                        <label for="check5">Pneus - Verificar calibragem</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check6" name="checklist">
+                        <label for="check6">Pneus - Verificar desgaste</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check7" name="checklist">
+                        <label for="check7">Suspensão - Verificar amortecedores</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check8" name="checklist">
+                        <label for="check8">Elétrica - Verificar bateria</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check9" name="checklist">
+                        <label for="check9">Elétrica - Verificar luzes</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check10" name="checklist">
+                        <label for="check10">Transmissão - Verificar óleo do câmbio</label>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 30px;">
+                        <label for="observations">Observações Gerais:</label>
+                        <textarea id="observations" rows="4" placeholder="Descreva problemas encontrados, peças que precisam ser trocadas, etc."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">Finalizar e Enviar para Logística</button>
+                    <button type="button" class="btn btn-danger" onclick="cancelChecklist()">Cancelar</button>
+                </form>
+            </div>
+
+            <!-- Lista de Checklists do Mecânico -->
+            <div id="myChecklistsView" class="checklist-container hidden">
+                <h3>📊 Meus Checklists</h3>
+                <div id="myChecklistsList"></div>
+                <button class="btn btn-secondary" onclick="hideMyChecklists()">Voltar</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Logística -->
+        <div id="logisticaDashboard" class="dashboard-container hidden">
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <h2>Dashboard Logística</h2>
+                    <p id="logisticaName"></p>
+                </div>
+                <button class="logout-btn" onclick="logout()">Sair</button>
+            </div>
+
+            <div class="cards-grid">
+                <div class="card">
+                    <h3>📋 Ordens Pendentes</h3>
+                    <p id="pendingCount">0 ordens aguardando orçamento</p>
+                </div>
+                <div class="card">
+                    <h3>⏳ Em Andamento</h3>
+                    <p id="inProgressCount">0 ordens em andamento</p>
+                </div>
+                <div class="card">
+                    <h3>✅ Finalizadas</h3>
+                    <p id="completedCount">0 ordens finalizadas</p>
                 </div>
             </div>
 
-            <!-- Categoria Suspensão -->
-            <div class="card mb-3 bg-secondary text-light">
-                <div class="card-header text-warning">Suspensão</div>
-                <div class="card-body">
-                    {% for item in ["Amortecedores", "Molas", "Coxins", "Buchas", "Pivôs", "Bandejas"] %}
-                    <div class="mb-2">
-                        <label>{{ item }}</label><br>
-                        <input type="radio" name="Suspensao-{{ item }}" value="Bom" required> Bom
-                        <input type="radio" name="Suspensao-{{ item }}" value="Regular"> Regular
-                        <input type="radio" name="Suspensao-{{ item }}" value="Ruim"> Ruim
-                    </div>
-                    {% endfor %}
+            <div class="checklist-container">
+                <h3>📊 Ordens de Serviço</h3>
+                <table class="work-orders-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Veículo</th>
+                            <th>Mecânico</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workOrdersList">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Modal para visualizar checklist -->
+            <div id="checklistModal" class="checklist-container hidden">
+                <h3>📋 Detalhes da Ordem de Serviço</h3>
+                <div id="checklistDetails"></div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="hideChecklistModal()">Fechar</button>
+                    <button class="btn" onclick="updateOrderStatus()">Atualizar Status</button>
                 </div>
             </div>
-
-            <!-- Categoria Motor -->
-            <div class="card mb-3 bg-secondary text-light">
-                <div class="card-header text-warning">Motor</div>
-                <div class="card-body">
-                    {% for item in ["Óleo", "Filtro de ar", "Filtro de combustível", "Filtro de óleo", "Correia dentada", "Vazamentos", "Injeção"] %}
-                    <div class="mb-2">
-                        <label>{{ item }}</label><br>
-                        <input type="radio" name="Motor-{{ item }}" value="Bom" required> Bom
-                        <input type="radio" name="Motor-{{ item }}" value="Regular"> Regular
-                        <input type="radio" name="Motor-{{ item }}" value="Ruim"> Ruim
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Categoria Câmbio -->
-            <div class="card mb-3 bg-secondary text-light">
-                <div class="card-header text-warning">Câmbio</div>
-                <div class="card-body">
-                    {% for item in ["Embreagem", "Fluido", "Engates"] %}
-                    <div class="mb-2">
-                        <label>{{ item }}</label><br>
-                        <input type="radio" name="Cambio-{{ item }}" value="Bom" required> Bom
-                        <input type="radio" name="Cambio-{{ item }}" value="Regular"> Regular
-                        <input type="radio" name="Cambio-{{ item }}" value="Ruim"> Ruim
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Categoria Elétrica -->
-            <div class="card mb-3 bg-secondary text-light">
-                <div class="card-header text-warning">Elétrica</div>
-                <div class="card-body">
-                    {% for item in ["Alternador", "Bateria", "Motor de arranque", "Fusíveis"] %}
-                    <div class="mb-2">
-                        <label>{{ item }}</label><br>
-                        <input type="radio" name="Eletrica-{{ item }}" value="Bom" required> Bom
-                        <input type="radio" name="Eletrica-{{ item }}" value="Regular"> Regular
-                        <input type="radio" name="Eletrica-{{ item }}" value="Ruim"> Ruim
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Categoria Iluminação -->
-            <div class="card mb-3 bg-secondary text-light">
-                <div class="card-header text-warning">Iluminação</div>
-                <div class="card-body">
-                    {% for item in ["Faróis", "Lanternas traseiras", "Setas", "Luz de freio", "Luz de ré"] %}
-                    <div class="mb-2">
-                        <label>{{ item }}</label><br>
-                        <input type="radio" name="Iluminacao-{{ item }}" value="Bom" required> Bom
-                        <input type="radio" name="Iluminacao-{{ item }}" value="Regular"> Regular
-                        <input type="radio" name="Iluminacao-{{ item }}" value="Ruim"> Ruim
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Observações</label>
-                <textarea class="form-control" name="obs" rows="3"></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-warning w-100">Enviar Checklist</button>
-        </form>
+        </div>
     </div>
+
+    <!-- Notificação -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Dados simulados (em produção, usaria banco de dados)
+        let workOrders = [];
+        let currentUser = null;
+        let currentOrder = null;
+
+        // Usuários de teste
+        const users = {
+            'mecanico': { password: '123', type: 'mecanico', name: 'João Silva' },
+            'logistica': { password: '123', type: 'logistica', name: 'Maria Santos' }
+        };
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            console.log('Tentativa de login iniciada...');
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const userType = document.getElementById('userType').value;
+            
+            console.log('Dados:', { username, password, userType });
+            
+            const user = users[username];
+            console.log('Usuário encontrado:', user);
+            
+            if (user && user.password === password && user.type === userType) {
+                currentUser = { username, ...user };
+                console.log('Login bem-sucedido:', currentUser);
+                showDashboard(userType);
+                showNotification('Login realizado com sucesso!');
+            } else {
+                console.log('Falha no login - credenciais inválidas');
+                showNotification('Credenciais inválidas! Tente: mecanico/123 ou logistica/123', 'error');
+            }
+        });
+
+        function showDashboard(type) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            
+            if (type === 'mecanico') {
+                document.getElementById('mecanicoDashboard').classList.remove('hidden');
+                document.getElementById('mecanicoName').textContent = `Bem-vindo, ${currentUser.name}`;
+            } else {
+                document.getElementById('logisticaDashboard').classList.remove('hidden');
+                document.getElementById('logisticaName').textContent = `Bem-vinda, ${currentUser.name}`;
+                updateLogisticaDashboard();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mecanicoDashboard').classList.add('hidden');
+            document.getElementById('logisticaDashboard').classList.add('hidden');
+            
+            // Reset forms
+            document.getElementById('loginForm').reset();
+            hideAllForms();
+            showNotification('Logout realizado com sucesso!');
+        }
+
+        function hideAllForms() {
+            document.getElementById('newChecklistForm').classList.add('hidden');
+            document.getElementById('myChecklistsView').classList.add('hidden');
+            document.getElementById('checklistModal').classList.add('hidden');
+        }
+
+        // Mecânico functions
+        function showNewChecklist() {
+            hideAllForms();
+            document.getElementById('newChecklistForm').classList.remove('hidden');
+        }
+
+        function cancelChecklist() {
+            document.getElementById('checklistForm').reset();
+            document.getElementById('newChecklistForm').classList.add('hidden');
+        }
+
+        function showMyChecklists() {
+            hideAllForms();
+            document.getElementById('myChecklistsView').classList.remove('hidden');
+            displayMyChecklists();
+        }
+
+        function hideMyChecklists() {
+            document.getElementById('myChecklistsView').classList.add('hidden');
+        }
+
+        function displayMyChecklists() {
+            const myOrders = workOrders.filter(order => order.mechanic === currentUser.name);
+            const container = document.getElementById('myChecklistsList');
+            
+            if (myOrders.length === 0) {
+                container.innerHTML = '<p>Nenhum checklist criado ainda.</p>';
+                return;
+            }
+            
+            let html = '<table class="work-orders-table"><thead><tr><th>ID</th><th>Cliente</th><th>Veículo</th><th>Status</th><th>Data</th></tr></thead><tbody>';
+            
+            myOrders.forEach(order => {
+                html += `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.clientName}</td>
+                        <td>${order.vehicleModel}</td>
+                        <td><span class="status-badge status-${order.status.toLowerCase().replace(' ', '-')}">${order.status}</span></td>
+                        <td>${order.date}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        document.getElementById('checklistForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const checkboxes = document.querySelectorAll('input[name="checklist"]:checked');
+            
+            const order = {
+                id: Date.now(),
+                clientName: document.getElementById('clientName').value,
+                vehicleModel: document.getElementById('vehicleModel').value,
+                licensePlate: document.getElementById('licensePlate').value,
+                mileage: document.getElementById('mileage').value,
+                serviceDescription: document.getElementById('serviceDescription').value,
+                observations: document.getElementById('observations').value,
+                checkedItems: Array.from(checkboxes).map(cb => cb.nextElementSibling.textContent),
+                mechanic: currentUser.name,
+                status: 'Pendente',
+                date: new Date().toLocaleDateString('pt-BR')
+            };
+            
+            workOrders.push(order);
+            
+            document.getElementById('checklistForm').reset();
+            document.getElementById('newChecklistForm').classList.add('hidden');
+            
+            showNotification('Checklist enviado para logística com sucesso!');
+        });
+
+        // Logística functions
+        function updateLogisticaDashboard() {
+            const pending = workOrders.filter(order => order.status === 'Pendente').length;
+            const inProgress = workOrders.filter(order => order.status === 'Em Andamento').length;
+            const completed = workOrders.filter(order => order.status === 'Finalizado').length;
+            
+            document.getElementById('pendingCount').textContent = `${pending} ordens aguardando orçamento`;
+            document.getElementById('inProgressCount').textContent = `${inProgress} ordens em andamento`;
+            document.getElementById('completedCount').textContent = `${completed} ordens finalizadas`;
+            
+            displayWorkOrders();
+        }
+
+        function displayWorkOrders() {
+            const container = document.getElementById('workOrdersList');
+            
+            if (workOrders.length === 0) {
+                container.innerHTML = '<tr><td colspan="7">Nenhuma ordem de serviço encontrada.</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            workOrders.forEach(order => {
+                html += `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${order.clientName}</td>
+                        <td>${order.vehicleModel} - ${order.licensePlate}</td>
+                        <td>${order.mechanic}</td>
+                        <td><span class="status-badge status-${order.status.toLowerCase().replace(' ', '-')}">${order.status}</span></td>
+                        <td>${order.date}</td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewChecklist(${order.id})">Ver</button>
+                            <button class="action-btn btn-edit" onclick="changeStatus(${order.id})">Status</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function viewChecklist(orderId) {
+            const order = workOrders.find(o => o.id === orderId);
+            currentOrder = order;
+            
+            let html = `
+                <div class="card">
+                    <h4>📋 Informações do Veículo</h4>
+                    <p><strong>Cliente:</strong> ${order.clientName}</p>
+                    <p><strong>Veículo:</strong> ${order.vehicleModel}</p>
+                    <p><strong>Placa:</strong> ${order.licensePlate}</p>
+                    <p><strong>Quilometragem:</strong> ${order.mileage} km</p>
+                    <p><strong>Serviço:</strong> ${order.serviceDescription}</p>
+                    <p><strong>Mecânico:</strong> ${order.mechanic}</p>
+                </div>
+                
+                <div class="card">
+                    <h4>✅ Itens Verificados</h4>
+                    <ul>
+                        ${order.checkedItems.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h4>📝 Observações</h4>
+                    <p>${order.observations || 'Nenhuma observação adicional.'}</p>
+                </div>
+            `;
+            
+            document.getElementById('checklistDetails').innerHTML = html;
+            document.getElementById('checklistModal').classList.remove('hidden');
+        }
+
+        function hideChecklistModal() {
+            document.getElementById('checklistModal').classList.add('hidden');
+            currentOrder = null;
+        }
+
+        function changeStatus(orderId) {
+            const order = workOrders.find(o => o.id === orderId);
+            const newStatus = prompt(`Status atual: ${order.status}\n\nNovos status disponíveis:\n1. Pendente\n2. Em Andamento\n3. Finalizado\n\nDigite o novo status:`);
+            
+            if (newStatus && ['Pendente', 'Em Andamento', 'Finalizado'].includes(newStatus)) {
+                order.status = newStatus;
+                updateLogisticaDashboard();
+                showNotification('Status atualizado com sucesso!');
+            }
+        }
+
+        function updateOrderStatus() {
+            if (!currentOrder) return;
+            
+            const newStatus = prompt(`Status atual: ${currentOrder.status}\n\nNovos status disponíveis:\n1. Pendente\n2. Em Andamento\n3. Finalizado\n\nDigite o novo status:`);
+            
+            if (newStatus && ['Pendente', 'Em Andamento', 'Finalizado'].includes(newStatus)) {
+                currentOrder.status = newStatus;
+                updateLogisticaDashboard();
+                hideChecklistModal();
+                showNotification('Status atualizado com sucesso!');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type === 'error' ? 'error' : 'success'}`;
+            notification.style.background = type === 'error' ? '#dc3545' : '#ff6b35';
+            notification.style.color = type === 'error' ? '#fff' : '#000';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Dados de exemplo para demonstração
+        setTimeout(() => {
+            workOrders.push({
+                id: 1001,
+                clientName: 'Carlos Silva',
+                vehicleModel: 'Honda Civic 2018',
+                licensePlate: 'ABC-1234',
+                mileage: 85000,
+                serviceDescription: 'Revisão geral e troca de óleo',
+                observations: 'Pastilhas de freio precisam ser trocadas. Filtro de ar sujo.',
+                checkedItems: ['Motor - Verificar nível de óleo', 'Freios - Verificar pastilhas', 'Pneus - Verificar calibragem'],
+                mechanic: 'João Silva',
+                status: 'Pendente',
+                date: '28/09/2025'
+            });
+        }, 1000);
+    </script>
 </body>
 </html>
