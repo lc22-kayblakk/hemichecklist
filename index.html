@@ -340,8 +340,19 @@
         <!-- Tela de Login -->
         <div id="loginScreen" class="login-container">
             <div class="logo">
-                <h1>🔧 OficinaSystem</h1>
+                <div id="logoContainer">
+                    <img id="officeLogo" style="max-width: 100px; max-height: 80px; margin-bottom: 10px; display: none;" />
+                    <h1>🔧 OficinaSystem</h1>
+                </div>
                 <p>Sistema de Checklist e Logística</p>
+                
+                <!-- Upload de Logo (apenas visível se não houver logo) -->
+                <div id="logoUpload" style="margin-top: 15px; display: none;">
+                    <input type="file" id="logoFile" accept="image/*" style="display: none;">
+                    <button type="button" onclick="document.getElementById('logoFile').click()" class="btn btn-secondary" style="padding: 8px 15px; font-size: 12px; margin: 5px 0;">
+                        📷 Adicionar Logo da Oficina
+                    </button>
+                </div>
             </div>
             <form id="loginForm">
                 <div class="form-group">
@@ -360,6 +371,10 @@
                         <option value="logistica">Logística</option>
                     </select>
                 </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="rememberLogin" style="width: auto;">
+                    <label for="rememberLogin" style="margin: 0; color: #ccc; font-size: 14px;">Lembrar login</label>
+                </div>
                 <button type="submit" class="btn">Entrar</button>
             </form>
             <div style="margin-top: 20px; text-align: center; color: #ccc; font-size: 14px;">
@@ -373,10 +388,19 @@
         <div id="mecanicoDashboard" class="dashboard-container hidden">
             <div class="dashboard-header">
                 <div class="user-info">
-                    <h2>Dashboard Mecânico</h2>
-                    <p id="mecanicoName"></p>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <img id="dashboardLogo" style="max-width: 50px; max-height: 40px; display: none;" />
+                        <div>
+                            <h2>Dashboard Mecânico</h2>
+                            <p id="mecanicoName"></p>
+                            <small style="color: #ccc;">🟢 Online - Sincronização ativa</small>
+                        </div>
+                    </div>
                 </div>
-                <button class="logout-btn" onclick="logout()">Sair</button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="logout-btn" style="padding: 8px 15px; font-size: 12px;" onclick="clearLogo()">🗑️ Remover Logo</button>
+                    <button class="logout-btn" onclick="logout()">Sair</button>
+                </div>
             </div>
 
             <div class="cards-grid">
@@ -483,10 +507,19 @@
         <div id="logisticaDashboard" class="dashboard-container hidden">
             <div class="dashboard-header">
                 <div class="user-info">
-                    <h2>Dashboard Logística</h2>
-                    <p id="logisticaName"></p>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <img id="dashboardLogoLogistica" style="max-width: 50px; max-height: 40px; display: none;" />
+                        <div>
+                            <h2>Dashboard Logística</h2>
+                            <p id="logisticaName"></p>
+                            <small style="color: #ccc;" id="syncStatus">🟢 Online - Atualizações automáticas</small>
+                        </div>
+                    </div>
                 </div>
-                <button class="logout-btn" onclick="logout()">Sair</button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="logout-btn" style="padding: 8px 15px; font-size: 12px;" onclick="clearLogo()">🗑️ Remover Logo</button>
+                    <button class="logout-btn" onclick="logout()">Sair</button>
+                </div>
             </div>
 
             <div class="cards-grid">
@@ -539,10 +572,14 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // Dados simulados (em produção, usaria banco de dados)
-        let workOrders = [];
-        let currentUser = null;
+        // Dados persistentes (localStorage para salvar dados)
+        let workOrders = JSON.parse(localStorage.getItem('workOrders')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
         let currentOrder = null;
+        let officeLogo = localStorage.getItem('officeLogo') || null;
+        
+        // Intervalo para sincronização automática
+        let syncInterval = null;
 
         // Usuários de teste
         const users = {
@@ -550,7 +587,7 @@
             'logistica': { password: '123', type: 'logistica', name: 'Maria Santos' }
         };
 
-        // Login
+        // Login com sistema de lembrar
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -559,8 +596,9 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const userType = document.getElementById('userType').value;
+            const rememberLogin = document.getElementById('rememberLogin').checked;
             
-            console.log('Dados:', { username, password, userType });
+            console.log('Dados:', { username, password, userType, remember: rememberLogin });
             
             const user = users[username];
             console.log('Usuário encontrado:', user);
@@ -568,8 +606,16 @@
             if (user && user.password === password && user.type === userType) {
                 currentUser = { username, ...user };
                 console.log('Login bem-sucedido:', currentUser);
+                
+                // Salvar dados de login
+                saveLoginData(currentUser, rememberLogin);
+                
                 showDashboard(userType);
-                showNotification('Login realizado com sucesso!');
+                showNotification('Login realizado com sucesso!', 'success');
+                
+                // Carregar logo nos dashboards
+                setTimeout(loadOfficeLogo, 100);
+                
             } else {
                 console.log('Falha no login - credenciais inválidas');
                 showNotification('Credenciais inválidas! Tente: mecanico/123 ou logistica/123', 'error');
@@ -590,7 +636,19 @@
         }
 
         function logout() {
+            // Parar sincronização
+            stopAutoSync();
+            
             currentUser = null;
+            
+            // Limpar dados de sessão
+            sessionStorage.clear();
+            
+            // Limpar dados persistentes se não deve lembrar
+            if (!shouldRememberLogin()) {
+                localStorage.removeItem('currentUser');
+            }
+            
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('mecanicoDashboard').classList.add('hidden');
             document.getElementById('logisticaDashboard').classList.add('hidden');
@@ -672,15 +730,24 @@
                 checkedItems: Array.from(checkboxes).map(cb => cb.nextElementSibling.textContent),
                 mechanic: currentUser.name,
                 status: 'Pendente',
-                date: new Date().toLocaleDateString('pt-BR')
+                date: new Date().toLocaleDateString('pt-BR'),
+                timestamp: new Date().toISOString()
             };
             
             workOrders.push(order);
+            
+            // Salvar dados imediatamente
+            saveData();
             
             document.getElementById('checklistForm').reset();
             document.getElementById('newChecklistForm').classList.add('hidden');
             
             showNotification('Checklist enviado para logística com sucesso!');
+            
+            // Simular notificação para logística em tempo real
+            setTimeout(() => {
+                simulateNewOrder();
+            }, 2000);
         });
 
         // Logística functions
@@ -764,25 +831,49 @@
 
         function changeStatus(orderId) {
             const order = workOrders.find(o => o.id === orderId);
-            const newStatus = prompt(`Status atual: ${order.status}\n\nNovos status disponíveis:\n1. Pendente\n2. Em Andamento\n3. Finalizado\n\nDigite o novo status:`);
+            const statusOptions = ['Pendente', 'Em Andamento', 'Finalizado'];
+            const currentIndex = statusOptions.indexOf(order.status);
+            const nextIndex = (currentIndex + 1) % statusOptions.length;
             
-            if (newStatus && ['Pendente', 'Em Andamento', 'Finalizado'].includes(newStatus)) {
+            const newStatus = statusOptions[nextIndex];
+            
+            if (confirm(`Alterar status de "${order.status}" para "${newStatus}"?`)) {
                 order.status = newStatus;
+                order.lastUpdate = new Date().toISOString();
+                
+                // Salvar dados imediatamente
+                saveData();
+                
                 updateLogisticaDashboard();
-                showNotification('Status atualizado com sucesso!');
+                showNotification(`Status alterado para: ${newStatus}`, 'success');
+                
+                // Atualizar sync status
+                updateSyncStatus('🟢 Status atualizado - ' + new Date().toLocaleTimeString());
             }
         }
 
         function updateOrderStatus() {
             if (!currentOrder) return;
             
-            const newStatus = prompt(`Status atual: ${currentOrder.status}\n\nNovos status disponíveis:\n1. Pendente\n2. Em Andamento\n3. Finalizado\n\nDigite o novo status:`);
+            const statusOptions = ['Pendente', 'Em Andamento', 'Finalizado'];
+            const currentIndex = statusOptions.indexOf(currentOrder.status);
+            const nextIndex = (currentIndex + 1) % statusOptions.length;
             
-            if (newStatus && ['Pendente', 'Em Andamento', 'Finalizado'].includes(newStatus)) {
+            const newStatus = statusOptions[nextIndex];
+            
+            if (confirm(`Alterar status de "${currentOrder.status}" para "${newStatus}"?`)) {
                 currentOrder.status = newStatus;
+                currentOrder.lastUpdate = new Date().toISOString();
+                
+                // Salvar dados imediatamente
+                saveData();
+                
                 updateLogisticaDashboard();
                 hideChecklistModal();
-                showNotification('Status atualizado com sucesso!');
+                showNotification(`Status atualizado para: ${newStatus}`, 'success');
+                
+                // Atualizar sync status
+                updateSyncStatus('🟢 Atualizado - ' + new Date().toLocaleTimeString());
             }
         }
 
@@ -922,8 +1013,93 @@
         }
         
         // ========================================
-        // APIs 100% GRATUITAS E ILIMITADAS
+        // SISTEMA DE LOGO E PERSISTÊNCIA
         // ========================================
+        
+        // Carregar logo ao iniciar
+        function loadOfficeLogo() {
+            if (officeLogo) {
+                const logoElement = document.getElementById('officeLogo');
+                const dashboardLogoMec = document.getElementById('dashboardLogo');
+                const dashboardLogoLog = document.getElementById('dashboardLogoLogistica');
+                
+                if (logoElement) {
+                    logoElement.src = officeLogo;
+                    logoElement.style.display = 'block';
+                }
+                if (dashboardLogoMec) {
+                    dashboardLogoMec.src = officeLogo;
+                    dashboardLogoMec.style.display = 'block';
+                }
+                if (dashboardLogoLog) {
+                    dashboardLogoLog.src = officeLogo;
+                    dashboardLogoLog.style.display = 'block';
+                }
+            } else {
+                // Mostrar botão de upload apenas se não houver logo
+                const uploadDiv = document.getElementById('logoUpload');
+                if (uploadDiv) uploadDiv.style.display = 'block';
+            }
+        }
+        
+        // Upload de logo
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOfficeLogo();
+            
+            const logoFileInput = document.getElementById('logoFile');
+            if (logoFileInput) {
+                logoFileInput.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const logoData = e.target.result;
+                            
+                            // Salvar logo
+                            officeLogo = logoData;
+                            localStorage.setItem('officeLogo', logoData);
+                            
+                            // Atualizar interface
+                            loadOfficeLogo();
+                            
+                            // Esconder botão de upload
+                            const uploadDiv = document.getElementById('logoUpload');
+                            if (uploadDiv) uploadDiv.style.display = 'none';
+                            
+                            showNotification('✅ Logo adicionado com sucesso!', 'success');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            
+            // Auto-login se lembrado
+            autoLogin();
+            
+            // Iniciar sincronização
+            startAutoSync();
+        });
+        
+        // Remover logo
+        function clearLogo() {
+            if (confirm('Tem certeza que deseja remover o logo da oficina?')) {
+                officeLogo = null;
+                localStorage.removeItem('officeLogo');
+                
+                // Esconder logos
+                const logoElements = ['officeLogo', 'dashboardLogo', 'dashboardLogoLogistica'];
+                logoElements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) element.style.display = 'none';
+                });
+                
+                // Mostrar botão de upload novamente
+                const uploadDiv = document.getElementById('logoUpload');
+                if (uploadDiv) uploadDiv.style.display = 'block';
+                
+                showNotification('Logo removido!', 'success');
+            }
+        }
         
         // Função principal para consultar apenas APIs gratuitas
         async function consultarPlacaGratuita(plate) {
